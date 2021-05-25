@@ -1,65 +1,84 @@
 package JavaPrograms;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 public class BerlinClock {
  
 	
-	    public static String berlinClock(int hours, int minutes, int seconds) {
-	        return getSeconds(seconds) + " " + getHours(hours) + " " + getMinutes(minutes);
-	    }
+	
+		public String convertTime(String time2) {
+			int[] parts = Stream.of(time2.split(":")).mapToInt(Integer::parseInt).toArray();// returns an int stream in
+																							// specified sequence ,split is
+																							// a method which works by
+																							// invoking 2 argument split
+																							// method.
+	// here time which is in hh:mm:ss->hh,mm,ss;
+	//eg:13:15:04 is splitted into 13,15,04
 
-	    protected static String getSeconds(int seconds) {
-	        return seconds % 2 == 0 ? "Y" : "O";
-	    }
+			StringBuffer time = new StringBuffer();
 
-	    protected static String getHours(int hours) {
-	        int numberTopHourLamps = hours / 5;
-	        int numberBottomHourLamps = hours % 5;
+			return time.append(getSeconds(parts[2])).append(System.getProperty("line.separator"))
+					.append(getTopHours(parts[0])).append(System.getProperty("line.separator"))
+					.append(getBottomHours(parts[0])).append(System.getProperty("line.separator"))
+					.append(getTopMinutes(parts[1])).append(System.getProperty("line.separator"))
+					.append(getBottomMinutes(parts[1])).toString(); // returns the substrings in the same sequence as
+																	// written and gets printed line by line
+		}
 
-	        StringBuilder sb = new StringBuilder();
-	        sb.append(getLampRow(4, numberTopHourLamps, "R"))
-	                .append(" ")
-	                .append(getLampRow(4, numberBottomHourLamps, "R"));
+		private String getSeconds(int number) {
+			if (number % 2 == 0) // seconds are 04 ;04%2 =2
+				return "Y"; // Y will be printed
+			else
+				return "O";
+		}
 
-	        return sb.toString();
-	    }
+		private String getTopHours(int number) {
+			return getOnOff(4, getTopNumberOfOnSigns(number)); // as no of top hour lights are 4 it is taken and from the
+																// function top no of on signs we got is 2
+		}
 
-	    protected static String getMinutes(int minutes) {
-	        int numberTopMinutesLamps = minutes / 5;
-	        int numberBottomMinutesLamps = minutes % 5;
+		private String getBottomHours(int number) {
+			return getOnOff(4, number % 5); // (4, (13%5)=3 )
+		}
 
-	        StringBuilder sb = new StringBuilder();
-	        IntStream.rangeClosed(1, 11)
-	                .forEach(i -> sb.append(i <= numberTopMinutesLamps ? getMinuteLampColour(i) : "O"));
+		private String getTopMinutes(int number) {
+			return getOnOff(11, getTopNumberOfOnSigns(number), "Y").replaceAll("YYY", "YYR"); // default is the 3rd,6th,9th
+																								// of minute blocks are red.
+		}
 
-	        sb.append(" ");
+		private String getBottomMinutes(int number) {
+			return getOnOff(4, number % 5, "Y");
+		}
 
-	        sb.append(getLampRow(4, numberBottomMinutesLamps, "Y"));
+		private String getOnOff(int lamps, int onSigns) {
+			return getOnOff(lamps, onSigns, "R");
+		}
 
-	        return sb.toString();
-	    }
+		private String getOnOff(int lamps, int onSigns, String onSign) {
+			String out = "";
+			for (int i = 0; i < onSigns; i++) {
+				out += onSign;
+			}
+			for (int i = 0; i < (lamps - onSigns); i++) {
+				out += "O";
+			}
+			return out;
+		}
 
-	    private static String getLampRow(int totalNumberLamps, int numberLampsOn, String lampSymbol) {
-	        StringBuilder sb = new StringBuilder();
-	        IntStream.rangeClosed(1, totalNumberLamps)
-	                .forEach(i -> sb.append(i <= numberLampsOn ? lampSymbol : "O"));
-	        return sb.toString();
-	    }
+		private int getTopNumberOfOnSigns(int number) {
+			return (number - (number % 5)) / 5; // if 13 hrs is selected, (13-3)/5= 2 red lights on top gets on.
+		}
 
-	    private static String getMinuteLampColour(int index) {
-	        return index % 3 == 0 ? "R" : "Y";
-	    }
-	    public static void main(String[] args)
-	    {
-	    	Scanner sc=new Scanner(System.in);
-	    	System.out.println("Enter hours:");
-	    	int Hours= sc.nextInt();
-	    	System.out.println("Enter minutes :");
-	    	int minutes= sc.nextInt();
-	    	System.out.println("Enter seconds:");
-	    	int sec= sc.nextInt();
-	    	System.out.println("output is" +berlinClock(Hours,minutes,sec));
-	    	
-	    }
+		public static void main(String[] args) {
+
+			BerlinClock berlinClock = new BerlinClock();
+
+			LocalTime time1 = LocalTime.now();
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+			String formattedtime = time1.format(formatter);
+			System.out.println("the current system time is :" + time1.format(formatter));
+			System.out.println("The berlin clock codes are :\n " + berlinClock.convertTime(formattedtime));
+		}
 	}
